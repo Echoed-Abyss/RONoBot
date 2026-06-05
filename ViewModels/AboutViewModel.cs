@@ -35,8 +35,8 @@ public class AboutViewModel : ViewModelBase
     // GitHub 仓库地址
     private const string AppGitHubUrl = "https://github.com/Echoed-Abyss/RONoBot";
     private const string PmhqGitHubUrl = "https://github.com/linyuchen/PMHQ";
-    private const string LLBotGitHubUrl = "https://github.com/LLOneBot/LuckyLilliaBot";
-    private const string QQGroupUrl = "https://qm.qq.com/q/iX3AHaAtvG";
+    private const string LLBotGitHubUrl = "https://github.com/Echoed-Abyss/RoNoBot.Core";
+    private const string QQGroupUrl = "https://qm.qq.com/q/JYAmfnFQ0G";
 
     // 应用信息
     public static string AppName => "RONoBbot";

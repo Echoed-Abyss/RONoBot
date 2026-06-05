@@ -50,11 +50,7 @@ public class UpdateChecker : IUpdateChecker
 
     public async Task<UpdateInfo> CheckAppUpdateAsync(string currentVersion, CancellationToken ct = default)
     {
-        return await CheckUpdateAsync(
-            Constants.NpmPackages.App,
-            currentVersion,
-            $"https://github.com/{Constants.GitHubRepos.App}/releases",
-            ct);
+        return await CheckRoNoBotUpdateAsync(currentVersion, ct);
     }
 
     public async Task<UpdateInfo> CheckPmhqUpdateAsync(string currentVersion, CancellationToken ct = default)

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Lucky Lillia Desktop (幸运莉莉娅桌面端) is a cross-platform desktop control panel for LLBot (QQ robot framework). Built with Avalonia UI + ReactiveUI on .NET 8.0, it manages the lifecycle of PMHQ (QQ protocol handler), LLBot, and various bot frameworks (Koishi, AstrBot, Zhenxun, etc.).
+RoNoBot Desktop (RONoBbot) is a cross-platform desktop control panel for QQ robot ecosystem. Built with Avalonia UI + ReactiveUI on .NET 8.0, it manages the lifecycle of PMHQ (QQ protocol handler), LLBot (Rust-sidecar), and various bot frameworks (Koishi, AstrBot, Zhenxun, etc.).
 
 The codebase is primarily in Chinese (comments, UI strings, log messages).
 

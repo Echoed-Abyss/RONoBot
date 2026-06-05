@@ -21,7 +21,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly IResourceMonitor _resourceMonitor;
 
     private int _selectedIndex;
-    private string _title = "LLBot";
+    private string _title = "RoNoBot Desktop";
     private bool _isDarkTheme = true;
     private bool _isMonitoringPaused;
 

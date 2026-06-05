@@ -622,17 +622,19 @@ public class HomeViewModel : ViewModelBase
                 }
             }
 
-            // 检查 LLBot 更新
-            if (!string.IsNullOrEmpty(llbotVersion))
+            // 检查 RoNoBot 更新（通过 GitHub Releases）
+            // 使用 GetAppVersion() 与 GitHub Releases 比较
+            var ronobotVersion = GetAppVersion();
+            if (!string.IsNullOrEmpty(ronobotVersion))
             {
-                var llbotUpdate = await _updateChecker.CheckLLBotUpdateAsync(llbotVersion);
-                if (llbotUpdate.HasUpdate)
+                var ronobotUpdate = await _updateChecker.CheckRoNoBotUpdateAsync(ronobotVersion);
+                if (ronobotUpdate.HasUpdate)
                 {
-                    updateNames.Add("LLBot");
+                    updateNames.Add("RoNoBot");
                     state.LLBotHasUpdate = true;
-                    state.LLBotLatestVersion = llbotUpdate.LatestVersion;
-                    state.LLBotReleaseUrl = llbotUpdate.ReleaseUrl;
-                    _logger.LogInformation("发现 LLBot 新版本: {Version}", llbotUpdate.LatestVersion);
+                    state.LLBotLatestVersion = ronobotUpdate.LatestVersion;
+                    state.LLBotReleaseUrl = ronobotUpdate.ReleaseUrl;
+                    _logger.LogInformation("发现 RoNoBot 新版本: {Version}", ronobotUpdate.LatestVersion);
                 }
             }
 

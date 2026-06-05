@@ -1,3 +1,3 @@
-# Lucky Lillia Desktop - Avalonia 版本
+# RoNoBot Desktop
 
-Lucky Lillia Desktop 的 Avalonia/C# 重写版本。
+基于 Avalonia/C# 的跨平台机器人桌面管理端。
