@@ -34,7 +34,7 @@ public class GitHubHelper : IGitHubHelper, IDisposable
     {
         _logger = logger;
         _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", "LuckyLilliaDesktop");
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", "RoNoBot/1.0");
     }
 
     public async Task<string?> GetLatestTagAsync(string owner, string repo, CancellationToken ct = default)
