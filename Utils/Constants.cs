@@ -34,11 +34,11 @@ public static class Constants
     {
         public const string PmhqDir = "bin/pmhq";
         public static string PmhqExe => PlatformHelper.GetExecutablePath("bin/pmhq", $"pmhq-{PlatformHelper.PlatformIdentifier}");
-        public const string LLBotDir = "bin/llbot";
-        public const string LLBotScript = "bin/llbot/llbot.js";
-        public static string NodeExe => PlatformHelper.GetExecutablePath("bin/llbot", "node");
-        public static string FFmpegExe => PlatformHelper.GetExecutablePath("bin/llbot", "ffmpeg");
-        public static string FFprobeExe => PlatformHelper.GetExecutablePath("bin/llbot", "ffprobe");
+        public const string LLBotDir = "bin/RONoBot";
+        public const string LLBotScript = "bin/RONoBot/llbot.js";
+        public static string NodeExe => PlatformHelper.GetExecutablePath("bin/RONoBot", "node");
+        public static string FFmpegExe => PlatformHelper.GetExecutablePath("bin/RONoBot", "ffmpeg");
+        public static string FFprobeExe => PlatformHelper.GetExecutablePath("bin/RONoBot", "ffprobe");
 
         // QQ 相关路径
         public const string QQDir = "bin/qq";

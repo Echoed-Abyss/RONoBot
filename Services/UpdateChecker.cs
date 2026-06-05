@@ -30,6 +30,10 @@ public interface IUpdateChecker
     /// 检查 RONoBot 是否有新版本（通过 GitHub Releases）
     /// </summary>
     Task<UpdateInfo> CheckRoNoBotUpdateAsync(string currentVersion, CancellationToken ct = default);
+    /// <summary>
+    /// 检查 RoNoBot.Core (WebUI) 是否有新版本（通过 GitHub Releases）
+    /// </summary>
+    Task<UpdateInfo> CheckWebUIUpdateAsync(string currentVersion, CancellationToken ct = default);
 }
 
 /// <summary>
@@ -69,6 +73,69 @@ public class UpdateChecker : IUpdateChecker
             currentVersion,
             $"https://github.com/{Constants.GitHubRepos.LLBot}/releases",
             ct);
+    }
+
+    /// <summary>
+    /// 检查 RoNoBot.WebUI 是否有新版本（通过 RoNoBot.Core GitHub Releases）
+    /// </summary>
+    public async Task<UpdateInfo> CheckWebUIUpdateAsync(string currentVersion, CancellationToken ct = default)
+    {
+        var repo = "Echoed-Abyss/RoNoBot.Core";
+        var parts = repo.Split('/');
+        if (parts.Length != 2)
+        {
+            return new UpdateInfo
+            {
+                HasUpdate = false,
+                CurrentVersion = currentVersion,
+                LatestVersion = "未知",
+                ReleaseUrl = "https://github.com/Echoed-Abyss/RoNoBot.Core/releases",
+                Error = "仓库地址格式错误"
+            };
+        }
+
+        try
+        {
+            var latestTag = await _gitHubHelper.GetLatestTagAsync(parts[0], parts[1], ct);
+
+            if (string.IsNullOrEmpty(latestTag))
+            {
+                return new UpdateInfo
+                {
+                    HasUpdate = false,
+                    CurrentVersion = currentVersion,
+                    LatestVersion = "未知",
+                    ReleaseUrl = "https://github.com/Echoed-Abyss/RoNoBot.Core/releases",
+                    Error = "无法获取 GitHub Release 信息"
+                };
+            }
+
+            var latestVersion = CleanVersion(latestTag);
+            var hasUpdate = CompareVersions(currentVersion, latestVersion) < 0;
+
+            _logger.LogInformation("RoNoBot.WebUI: 当前版本 {Current}, 最新版本 {Latest} (tag: {Tag}), 有更新: {HasUpdate}",
+                currentVersion, latestVersion, latestTag, hasUpdate);
+
+            return new UpdateInfo
+            {
+                HasUpdate = hasUpdate,
+                CurrentVersion = currentVersion,
+                LatestVersion = latestVersion,
+                ReleaseUrl = $"https://github.com/Echoed-Abyss/RoNoBot.Core/releases/tag/{latestTag}"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "检查 RoNoBot.WebUI 更新失败");
+            return new UpdateInfo
+            {
+                HasUpdate = false,
+                CurrentVersion = currentVersion,
+                LatestVersion = "未知",
+                ReleaseUrl = "https://github.com/Echoed-Abyss/RoNoBot.Core/releases",
+                Error = ex.Message
+            };
+        }
     }
 
     /// <summary>

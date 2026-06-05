@@ -622,19 +622,18 @@ public class HomeViewModel : ViewModelBase
                 }
             }
 
-            // 检查 RoNoBot 更新（通过 GitHub Releases）
-            // 使用 GetAppVersion() 与 GitHub Releases 比较
-            var ronobotVersion = GetAppVersion();
-            if (!string.IsNullOrEmpty(ronobotVersion))
+            // 检查 RoNoBot.WebUI 更新（通过 RoNoBot.Core GitHub Releases）
+            var webuiVersion = "v1.0.0";
+            if (!string.IsNullOrEmpty(webuiVersion))
             {
-                var ronobotUpdate = await _updateChecker.CheckRoNoBotUpdateAsync(ronobotVersion);
-                if (ronobotUpdate.HasUpdate)
+                var webuiUpdate = await _updateChecker.CheckWebUIUpdateAsync(webuiVersion);
+                if (webuiUpdate.HasUpdate)
                 {
-                    updateNames.Add("RoNoBot");
+                    updateNames.Add("RoNoBot.WebUI");
                     state.LLBotHasUpdate = true;
-                    state.LLBotLatestVersion = ronobotUpdate.LatestVersion;
-                    state.LLBotReleaseUrl = ronobotUpdate.ReleaseUrl;
-                    _logger.LogInformation("发现 RoNoBot 新版本: {Version}", ronobotUpdate.LatestVersion);
+                    state.LLBotLatestVersion = webuiUpdate.LatestVersion;
+                    state.LLBotReleaseUrl = webuiUpdate.ReleaseUrl;
+                    _logger.LogInformation("发现 RoNoBot.WebUI 新版本: {Version}", webuiUpdate.LatestVersion);
                 }
             }
 

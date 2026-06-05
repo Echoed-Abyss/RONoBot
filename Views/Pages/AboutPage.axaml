@@ -288,7 +288,7 @@
                             <PathIcon Data="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"
                                       Width="24" Height="24"
                                       Foreground="{DynamicResource PrimaryBrush}"/>
-                            <TextBlock Text="RONoBbot"
+                            <TextBlock Text="RoNoBot.WebUI"
                                        FontSize="20"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource TextPrimary}"/>
@@ -404,7 +404,7 @@
                                 <PathIcon Data="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
                                           Width="16" Height="16"
                                           Foreground="{DynamicResource PrimaryBrush}"/>
-                                <TextBlock Text="RONoBbot GitHub"
+                                <TextBlock Text="RoNoBot.Core"
                                            Foreground="{DynamicResource PrimaryBrush}"
                                            FontSize="14"/>
                             </StackPanel>
@@ -416,7 +416,7 @@
                                 <PathIcon Data="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
                                           Width="16" Height="16"
                                           Foreground="{DynamicResource PrimaryBrush}"/>
-                                <TextBlock Text="RONoBbot GitHub"
+                                <TextBlock Text="RoNoBot"
                                            Foreground="{DynamicResource PrimaryBrush}"
                                            FontSize="14"/>
                             </StackPanel>

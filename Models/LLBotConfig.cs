@@ -5,8 +5,8 @@ using System.Text.Json.Serialization;
 namespace LuckyLilliaDesktop.Models;
 
 /// <summary>
-/// LLBot 配置 - 与 Python 版本的 llbot_config_page.py 保持一致
-/// 对应配置文件: bin/llbot/data/config_{uin}.json
+/// LLBot 配置 - �?Python 版本�?llbot_config_page.py 保持一�?
+/// 对应配置文件: bin/RONoBot/data/config_{uin}.json
 /// </summary>
 public class LLBotConfig
 {
@@ -165,3 +165,4 @@ public class MilkyWebhookConfig
     [JsonPropertyName("accessToken")]
     public string AccessToken { get; set; } = string.Empty;
 }
+

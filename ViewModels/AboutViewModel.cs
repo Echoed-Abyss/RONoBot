@@ -438,13 +438,13 @@ public class AboutViewModel : ViewModelBase
             // 检查 RONoBot 更新（改用 GitHub Releases）
             if (LLBotVersion != "未配置" && LLBotVersion != "未知" && LLBotVersion != "检测中...")
             {
-                var ronobotUpdate = await _updateChecker.CheckRoNoBotUpdateAsync(AppVersion);
-                if (ronobotUpdate.HasUpdate)
+                var webuiUpdate = await _updateChecker.CheckWebUIUpdateAsync("v1.0.0");
+                if (webuiUpdate.HasUpdate)
                 {
                     LLBotHasUpdate = true;
-                    LLBotLatestVersion = ronobotUpdate.LatestVersion;
-                    LLBotReleaseUrl = ronobotUpdate.ReleaseUrl;
-                    _logger.LogInformation("发现 RONoBot 新版本: {Version}", ronobotUpdate.LatestVersion);
+                    LLBotLatestVersion = webuiUpdate.LatestVersion;
+                    LLBotReleaseUrl = webuiUpdate.ReleaseUrl;
+                    _logger.LogInformation("发现 RoNoBot.WebUI 新版本: {Version}", webuiUpdate.LatestVersion);
                 }
                 else
                 {
