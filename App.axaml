@@ -1,0 +1,121 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:LuckyLilliaDesktop.Converters"
+             x:Class="LuckyLilliaDesktop.App"
+             RequestedThemeVariant="Dark">
+    <Application.Resources>
+        <ResourceDictionary>
+            <converters:EqualToIntConverter x:Key="EqualToIntConverter"/>
+            <ResourceDictionary.ThemeDictionaries>
+                <!-- 深色主题 -->
+                <ResourceDictionary x:Key="Dark">
+                    <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#1E293B"/>
+                        <GradientStop Offset="1" Color="#334155"/>
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="PrimaryBrush">#818CF8</SolidColorBrush>
+                    <SolidColorBrush x:Key="PrimaryBrushSoft">#252550</SolidColorBrush>
+                    <SolidColorBrush x:Key="SidebarBackground">#14142E</SolidColorBrush>
+                    <LinearGradientBrush x:Key="MainBackground" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#0B0B1A"/>
+                        <GradientStop Offset="0.5" Color="#111128"/>
+                        <GradientStop Offset="1" Color="#0D1025"/>
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="CardBackground">#1A1A35</SolidColorBrush>
+                    <SolidColorBrush x:Key="CardBackgroundSecondary">#242440</SolidColorBrush>
+                    <SolidColorBrush x:Key="CardBackgroundStrong">#AA202040</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextPrimary">#EEEEFF</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextSecondary">#A0A0C0</SolidColorBrush>
+                    <SolidColorBrush x:Key="BorderColor">#2E2E50</SolidColorBrush>
+                    <SolidColorBrush x:Key="HoverBackground">#252550</SolidColorBrush>
+                    <SolidColorBrush x:Key="SelectedBackground">#2E2E50</SolidColorBrush>
+                    <SolidColorBrush x:Key="SuccessColor">#34D399</SolidColorBrush>
+                    <SolidColorBrush x:Key="DangerColor">#F87171</SolidColorBrush>
+                    <SolidColorBrush x:Key="TitleBarBackground">#AA14142E</SolidColorBrush>
+                    <SolidColorBrush x:Key="WindowButtonHover">#30353560</SolidColorBrush>
+                    <SolidColorBrush x:Key="CloseButtonHover">#4A1F2A</SolidColorBrush>
+                    <SolidColorBrush x:Key="WindowButtonStroke">#A0A0C0</SolidColorBrush>
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush">#AA202040</SolidColorBrush>
+                    <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush">#30353560</SolidColorBrush>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush">#EEEEFF</SolidColorBrush>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush">#A0A0C0</SolidColorBrush>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseLowBrush">#2E2E50</SolidColorBrush>
+                </ResourceDictionary>
+                <!-- 浅色主题：液态玻璃配色 -->
+                <ResourceDictionary x:Key="Light">
+                    <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#6366F1"/>
+                        <GradientStop Offset="0.5" Color="#818CF8"/>
+                        <GradientStop Offset="1" Color="#A78BFA"/>
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="PrimaryBrush">#6366F1</SolidColorBrush>
+                    <SolidColorBrush x:Key="PrimaryBrushSoft">#EEF2FF</SolidColorBrush>
+                    <SolidColorBrush x:Key="SidebarBackground">#FAFAFF</SolidColorBrush>
+                    <LinearGradientBrush x:Key="MainBackground" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#F0EFFB"/>
+                        <GradientStop Offset="0.5" Color="#F5F3FF"/>
+                        <GradientStop Offset="1" Color="#EEF2FF"/>
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="CardBackground">#D8FFFFFF</SolidColorBrush>
+                    <SolidColorBrush x:Key="CardBackgroundSecondary">#F0EEFC</SolidColorBrush>
+                    <SolidColorBrush x:Key="CardBackgroundStrong">#EBFFFFFF</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextPrimary">#1E1B4B</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextSecondary">#8B87A8</SolidColorBrush>
+                    <SolidColorBrush x:Key="BorderColor">#D8D6F5</SolidColorBrush>
+                    <SolidColorBrush x:Key="HoverBackground">#F0EEFC</SolidColorBrush>
+                    <SolidColorBrush x:Key="SelectedBackground">#E0DEF7</SolidColorBrush>
+                    <SolidColorBrush x:Key="SuccessColor">#10B981</SolidColorBrush>
+                    <SolidColorBrush x:Key="DangerColor">#EF4444</SolidColorBrush>
+                    <SolidColorBrush x:Key="TitleBarBackground">#EBFFFFFF</SolidColorBrush>
+                    <SolidColorBrush x:Key="WindowButtonHover">#30F0EEFC</SolidColorBrush>
+                    <SolidColorBrush x:Key="CloseButtonHover">#FEE2E2</SolidColorBrush>
+                    <SolidColorBrush x:Key="WindowButtonStroke">#8B87A8</SolidColorBrush>
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush">#EBFFFFFF</SolidColorBrush>
+                    <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush">#30F0EEFC</SolidColorBrush>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush">#1E1B4B</SolidColorBrush>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush">#8B87A8</SolidColorBrush>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseLowBrush">#D8D6F5</SolidColorBrush>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="/Styles/AppStyles.axaml"/>
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="Microsoft YaHei,Segoe UI Emoji"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="FontFamily" Value="Microsoft YaHei,Segoe UI Emoji"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="FontFamily" Value="Microsoft YaHei,Segoe UI Emoji"/>
+        </Style>
+        <Style Selector="CheckBox">
+            <Setter Property="FontFamily" Value="Microsoft YaHei,Segoe UI Emoji"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="FontFamily" Value="Microsoft YaHei,Segoe UI Emoji"/>
+        </Style>
+        <Style Selector="TabItem">
+            <Setter Property="FontFamily" Value="Microsoft YaHei,Segoe UI Emoji"/>
+        </Style>
+    </Application.Styles>
+    
+    <!-- 托盘图标 -->
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon Icon="avares://RoNoBotDesktop/Assets/Icons/icon.ico"
+                      ToolTipText="RONoBbot" 
+                      Clicked="TrayIcon_Clicked">
+                <TrayIcon.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="显示主窗口" Click="ShowWindow_Click"/>
+                        <NativeMenuItemSeparator/>
+                        <NativeMenuItem Header="退出" Click="Exit_Click"/>
+                    </NativeMenu>
+                </TrayIcon.Menu>
+            </TrayIcon>
+        </TrayIcons>
+    </TrayIcon.Icons>
+</Application>

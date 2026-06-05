@@ -1,0 +1,492 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using LuckyLilliaDesktop.Services;
+using LuckyLilliaDesktop.ViewModels;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace LuckyLilliaDesktop.Views;
+
+public partial class MainWindow : Window
+{
+    private IConfigManager? _configManager;
+    private ILogger<LoginDialog>? _loginDialogLogger;
+    private ILogger<MainWindow>? _logger;
+    private bool _windowPositionLoaded;
+    private bool _minimizeToTrayOnStartChecked;
+    private IResourceMonitor? _resourceMonitor;
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        Closing += OnWindowClosing;
+        PositionChanged += OnPositionChanged;
+        SizeChanged += OnSizeChanged;
+        
+        // 监听窗口可见性和窗口状态变化以优化性能/更新最大化按钮图标
+        PropertyChanged += OnWindowPropertyChanged;
+        UpdateMaximizeRestoreIcon();
+    }
+
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+
+        if (e.ClickCount == 2)
+        {
+            ToggleWindowState();
+            return;
+        }
+
+        BeginMoveDrag(e);
+    }
+
+    private void MinimizeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void MaximizeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        ToggleWindowState();
+    }
+
+    private void CloseButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    private void ToggleWindowState()
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+        UpdateMaximizeRestoreIcon();
+    }
+
+    private void UpdateMaximizeRestoreIcon()
+    {
+        var isMaximized = WindowState == WindowState.Maximized;
+        MaximizeIconPath.IsVisible = !isMaximized;
+        RestoreIconPath.IsVisible = isMaximized;
+    }
+    
+    private void OnWindowPropertyChanged(object? sender, Avalonia.AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property.Name == nameof(IsVisible))
+        {
+            HandleVisibilityChanged((bool?)e.NewValue ?? false);
+        }
+        else if (e.Property.Name == nameof(WindowState))
+        {
+            UpdateMaximizeRestoreIcon();
+        }
+    }
+    
+    private void HandleVisibilityChanged(bool isVisible)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            if (isVisible)
+            {
+                // 窗口显示时恢复监控
+                vm.ResumeMonitoring();
+            }
+            else
+            {
+                // 窗口隐藏时暂停监控以节省 CPU
+                vm.PauseMonitoring();
+            }
+        }
+    }
+
+    protected override async void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+        await LoadWindowPositionAsync();
+        await CheckMinimizeToTrayOnStartAsync();
+    }
+
+    private async Task CheckMinimizeToTrayOnStartAsync()
+    {
+        // 只在首次启动时检查，避免从托盘恢复时再次最小化
+        if (_minimizeToTrayOnStartChecked || _configManager == null) return;
+        _minimizeToTrayOnStartChecked = true;
+
+        try
+        {
+            var config = await _configManager.LoadConfigAsync();
+            if (config.MinimizeToTrayOnStart)
+            {
+                await Task.Delay(100);
+                MinimizeToTray();
+            }
+        }
+        catch { }
+    }
+
+    private async Task LoadWindowPositionAsync()
+    {
+        if (_windowPositionLoaded || _configManager == null) return;
+        _windowPositionLoaded = true;
+
+        try
+        {
+            var config = await _configManager.LoadConfigAsync();
+            var isFirstLaunch = !config.WindowLeft.HasValue && !config.WindowTop.HasValue;
+
+            if (isFirstLaunch)
+            {
+                _logger?.LogInformation("首次启动，计算初始窗口位置");
+                // 首次启动，根据屏幕大小计算窗口尺寸和位置
+                CalculateInitialWindowBounds();
+            }
+            else
+            {
+                // 恢复窗口大小（只恢复普通窗口尺寸，并限制在当前屏幕工作区内，避免上次最大化后像全屏一样打开）
+                RestoreNormalWindowSize(config.WindowWidth, config.WindowHeight);
+                
+                // 只有位置有效时才恢复（避免负值过大的情况）
+                if (config.WindowLeft.HasValue && config.WindowTop.HasValue
+                    && config.WindowLeft.Value > -1000 && config.WindowTop.Value > -1000)
+                {
+                    Position = new PixelPoint((int)config.WindowLeft.Value, (int)config.WindowTop.Value);
+                }
+                
+                _logger?.LogInformation("恢复窗口位置: ({X}, {Y}), 大小: {Width}x{Height}", 
+                    Position.X, Position.Y, Width, Height);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "加载窗口位置失败");
+        }
+    }
+
+    private void RestoreNormalWindowSize(int savedWidth, int savedHeight)
+    {
+        var targetWidth = savedWidth > 0 ? savedWidth : 960;
+        var targetHeight = savedHeight > 0 ? savedHeight : 640;
+
+        var screen = Screens.ScreenFromWindow(this);
+        if (screen != null)
+        {
+            var workingArea = screen.WorkingArea;
+            var screenWidth = workingArea.Width / screen.Scaling;
+            var screenHeight = workingArea.Height / screen.Scaling;
+
+            targetWidth = (int)Math.Min(targetWidth, Math.Max(MinWidth, screenWidth * 0.9));
+            targetHeight = (int)Math.Min(targetHeight, Math.Max(MinHeight, screenHeight * 0.9));
+        }
+
+        Width = Math.Max(MinWidth, targetWidth);
+        Height = Math.Max(MinHeight, targetHeight);
+        WindowState = WindowState.Normal;
+    }
+
+    private void CalculateInitialWindowBounds()
+    {
+        var screen = Screens.ScreenFromWindow(this);
+        if (screen == null) return;
+
+        var workingArea = screen.WorkingArea;
+        var screenWidth = workingArea.Width / screen.Scaling;
+        var screenHeight = workingArea.Height / screen.Scaling;
+
+        // 窗口占屏幕的 70%，但不超过 1200x800，不小于 900x600
+        var targetWidth = Math.Max(900, Math.Min(1200, screenWidth * 0.7));
+        var targetHeight = Math.Max(600, Math.Min(800, screenHeight * 0.7));
+
+        Width = targetWidth;
+        Height = targetHeight;
+
+        // 居中显示，留出任务栏空间
+        var left = workingArea.X / screen.Scaling + (screenWidth - targetWidth) / 2;
+        var top = workingArea.Y / screen.Scaling + (screenHeight - targetHeight) / 2;
+
+        Position = new PixelPoint((int)left, (int)top);
+    }
+
+    private void OnPositionChanged(object? sender, PixelPointEventArgs e)
+    {
+        _logger?.LogDebug("窗口位置改变: ({X}, {Y})", e.Point.X, e.Point.Y);
+        ScheduleSaveWindowPosition();
+    }
+
+    private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        _logger?.LogDebug("窗口大小改变: {Width}x{Height}", e.NewSize.Width, e.NewSize.Height);
+        ScheduleSaveWindowPosition();
+    }
+
+    private CancellationTokenSource? _savePositionCts;
+
+    private void ScheduleSaveWindowPosition()
+    {
+        if (_configManager == null || !_windowPositionLoaded)
+        {
+            _logger?.LogDebug("跳过保存窗口位置: ConfigManager={ConfigManager}, Loaded={Loaded}", 
+                _configManager != null, _windowPositionLoaded);
+            return;
+        }
+
+        // 只保存普通窗口位置和大小，避免最大化/最小化尺寸被保存后下次启动像全屏一样打开
+        if (WindowState != WindowState.Normal)
+        {
+            _logger?.LogDebug("窗口不是普通状态，跳过保存位置: {WindowState}", WindowState);
+            return;
+        }
+
+        // 检查位置是否有效（负值过大说明窗口在屏幕外）
+        if (Position.X < -1000 || Position.Y < -1000)
+        {
+            _logger?.LogDebug("窗口位置无效，跳过保存: ({X}, {Y})", Position.X, Position.Y);
+            return;
+        }
+
+        _savePositionCts?.Cancel();
+        _savePositionCts = new CancellationTokenSource();
+        var token = _savePositionCts.Token;
+
+        // 在 UI 线程上获取窗口属性
+        var left = Position.X;
+        var top = Position.Y;
+        var width = Width;
+        var height = Height;
+
+        _logger?.LogDebug("计划保存窗口位置 (2秒后)");
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(2000, token);
+                if (token.IsCancellationRequested) return;
+
+                await _configManager.SetSettingAsync("window_left", (int)left);
+                await _configManager.SetSettingAsync("window_top", (int)top);
+                await _configManager.SetSettingAsync("window_width", (int)width);
+                await _configManager.SetSettingAsync("window_height", (int)height);
+                
+                _logger?.LogInformation("窗口位置已保存: ({X}, {Y}), 大小: {Width}x{Height}", 
+                    left, top, width, height);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger?.LogDebug("保存窗口位置已取消");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "保存窗口位置失败");
+            }
+        }, token);
+    }
+
+    private async Task SaveWindowPositionImmediatelyAsync()
+    {
+        if (_configManager == null || !_windowPositionLoaded) return;
+
+        _savePositionCts?.Cancel();
+
+        if (WindowState != WindowState.Normal) return;
+        if (Position.X < -1000 || Position.Y < -1000) return;
+
+        try
+        {
+            await _configManager.SetSettingAsync("window_left", (int)Position.X);
+            await _configManager.SetSettingAsync("window_top", (int)Position.Y);
+            await _configManager.SetSettingAsync("window_width", (int)Width);
+            await _configManager.SetSettingAsync("window_height", (int)Height);
+            
+            _logger?.LogInformation("窗口位置立即保存: ({X}, {Y}), 大小: {Width}x{Height}", 
+                Position.X, Position.Y, Width, Height);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "立即保存窗口位置失败");
+        }
+    }
+
+    /// <summary>
+    /// 公开的保存窗口状态方法，供 App 调用
+    /// </summary>
+    public async Task SaveWindowStateAsync()
+    {
+        await SaveWindowPositionImmediatelyAsync();
+    }
+
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+
+        if (DataContext is MainWindowViewModel vm)
+        {
+            var app = Application.Current as App;
+            _configManager = app?.Services?.GetService(typeof(IConfigManager)) as IConfigManager;
+            _loginDialogLogger = app?.Services?.GetService(typeof(ILogger<LoginDialog>)) as ILogger<LoginDialog>;
+            _logger = app?.Services?.GetService(typeof(ILogger<MainWindow>)) as ILogger<MainWindow>;
+            var pmhqClient = app?.Services?.GetService(typeof(IPmhqClient)) as IPmhqClient;
+            _resourceMonitor = app?.Services?.GetService(typeof(IResourceMonitor)) as IResourceMonitor;
+
+            vm.HomeVM.ConfirmDialog = ShowConfirmDialogAsync;
+            vm.HomeVM.ChoiceDialog = ShowChoiceDialogAsync;
+            vm.HomeVM.ShowLoginDialog = port => ShowLoginDialogAsync(pmhqClient!, port);
+            vm.HomeVM.ShowLoginDialogWithHeadless = (port, headless) => ShowLoginDialogAsync(pmhqClient!, port, headless);
+            vm.HomeVM.ShowAlertDialog = ShowAlertDialogAsync;
+            vm.HomeVM.ShowLoadingDialog = ShowLoadingDialogAsync;
+            vm.AboutVM.ConfirmDialog = ShowConfirmDialogAsync;
+            vm.LLBotConfigVM.ShowAlertDialog = ShowAlertDialogAsync;
+        }
+    }
+
+    private async Task ShowAlertDialogAsync(string title, string message)
+    {
+        var dialog = new AlertDialog(message);
+        await dialog.ShowDialog<object?>(this);
+    }
+
+    private async Task ShowLoadingDialogAsync(string message, Func<Task> action)
+    {
+        var dialog = new LoadingDialog(message);
+        var dialogTask = dialog.ShowDialog<object?>(this);
+        
+        try
+        {
+            await action();
+        }
+        finally
+        {
+            dialog.Close();
+        }
+        
+        await dialogTask;
+    }
+
+    private async Task<bool> ShowConfirmDialogAsync(string title, string message)
+    {
+        var dialog = new ConfirmDialog(message);
+        var result = await dialog.ShowDialog<bool?>(this);
+        return result == true;
+    }
+
+    private async Task<int> ShowChoiceDialogAsync(string title, string message, string option1, string option2)
+    {
+        var dialog = new ChoiceDialog(title, message, option1, option2);
+        var result = await dialog.ShowDialog<int?>(this);
+        return result ?? -1;
+    }
+
+    private async Task<string?> ShowLoginDialogAsync(IPmhqClient pmhqClient, int port)
+    {
+        return await ShowLoginDialogAsync(pmhqClient, port, false);
+    }
+
+    private async Task<string?> ShowLoginDialogAsync(IPmhqClient pmhqClient, int port, bool isHeadlessMode)
+    {
+        while (true)
+        {
+            var dialog = new LoginDialog(pmhqClient, port, _loginDialogLogger, isHeadlessMode);
+            var result = await dialog.ShowDialog<bool?>(this);
+
+            if (result == true)
+                return dialog.LoggedInUin;
+
+            if (dialog.IsLoginFailed && isHeadlessMode)
+            {
+                var confirmDialog = new ConfirmDialog(dialog.LoginFailedReason ?? "登录失败");
+                await confirmDialog.ShowDialog<bool?>(this);
+                continue;
+            }
+
+            return null;
+        }
+    }
+
+    private bool _isClosingHandled;
+
+    private async void OnWindowClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (_isClosingHandled) return;
+
+        var closeToTray = _configManager?.GetSetting<bool?>("close_to_tray", null);
+
+        if (closeToTray == true)
+        {
+            e.Cancel = true;
+            MinimizeToTray();
+        }
+        else if (closeToTray == false)
+        {
+            _isClosingHandled = true;
+            e.Cancel = true;
+            await ExitAsync();
+        }
+        else
+        {
+            e.Cancel = true;
+            await ShowCloseDialogAsync();
+        }
+    }
+
+    private async Task ExitAsync()
+    {
+        if (Application.Current is App app)
+        {
+            await app.ExitApplicationAsync();
+        }
+    }
+
+    private async Task ShowCloseDialogAsync()
+    {
+        var dialog = new CloseDialog();
+        var result = await dialog.ShowDialog<CloseDialogResult?>(this);
+
+        if (result == null) return;
+
+        if (result.RememberChoice && _configManager != null)
+        {
+            await _configManager.SetSettingAsync("close_to_tray", result.MinimizeToTray);
+        }
+
+        if (result.MinimizeToTray)
+        {
+            MinimizeToTray();
+        }
+        else
+        {
+            _isClosingHandled = true;
+            await ExitAsync();
+        }
+    }
+
+    private void MinimizeToTray()
+    {
+        // 隐藏窗口
+        Hide();
+    }
+
+    public void RestoreFromTray()
+    {
+        Show();
+        WindowState = WindowState.Normal;
+        Activate();
+        
+        // 恢复监控
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.ResumeMonitoring();
+        }
+    }
+}
+
+/// <summary>
+/// 关闭对话框结果
+/// </summary>
+public class CloseDialogResult
+{
+    public bool MinimizeToTray { get; set; }
+    public bool RememberChoice { get; set; }
+}

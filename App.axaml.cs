@@ -1,0 +1,306 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
+using LuckyLilliaDesktop.ViewModels;
+using LuckyLilliaDesktop.Views;
+using LuckyLilliaDesktop.Services;
+using LuckyLilliaDesktop.Utils;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace LuckyLilliaDesktop;
+
+public partial class App : Application
+{
+    public IServiceProvider Services { get; private set; } = null!;
+    private NativeMenuItem? _trayShowMenuItem;
+
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+        ConfigureServices();
+        
+        // 注册进程退出事件，确保清理子进程
+        AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+        Console.CancelKeyPress += OnCancelKeyPress;
+        
+        // 旧版用注册表实现开机自启，新版改用 Task Scheduler，启动时自动迁移
+        StartupManager.MigrateFromLegacyRegistry();
+        
+        Log.Information("应用初始化完成");
+    }
+
+    private void OnProcessExit(object? sender, EventArgs e)
+    {
+        Log.Information("检测到进程退出，清理子进程...");
+        CleanupChildProcesses();
+    }
+
+    private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs e)
+    {
+        Log.Information("检测到 Ctrl+C，清理子进程...");
+        CleanupChildProcesses();
+    }
+
+    private void CleanupChildProcesses()
+    {
+        try
+        {
+            var resourceMonitor = Services?.GetService<IResourceMonitor>();
+            var processManager = Services?.GetService<IProcessManager>();
+            
+            var qqPid = resourceMonitor?.QQPid;
+            processManager?.ForceKillAll(qqPid);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "清理子进程失败");
+        }
+    }
+
+    private void ConfigureServices()
+    {
+        var services = new ServiceCollection();
+
+        // 配置 Serilog - 每次启动创建新日志文件，限制单文件大小并清理旧日志
+        CleanupOldLogs("logs", maxAgeDays: 7, maxTotalFiles: 50);
+        var logFileName = $"logs/{DateTime.Now:yyyyMMdd_HHmmss}.log";
+        var logger = new LoggerConfiguration()
+            .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.File(logFileName,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                fileSizeLimitBytes: 10 * 1024 * 1024,  // 单文件最大 10MB
+                rollOnFileSizeLimit: true)              // 超限后自动创建新文件 (_001, _002...)
+            .CreateLogger();
+        
+        // 设置为全局 logger
+        Log.Logger = logger;
+
+        // 核心服务（单例）
+        services.AddSingleton<IConfigManager, ConfigManager>();
+        services.AddSingleton<IEmailService, EmailService>();
+        services.AddSingleton<ILogCollector, LogCollector>();
+        services.AddSingleton<IProcessManager, ProcessManager>();
+        services.AddSingleton<IResourceMonitor, ResourceMonitor>();
+        services.AddSingleton<ISelfInfoService, SelfInfoService>();
+        services.AddSingleton<IPmhqClient, PmhqClient>();
+        services.AddSingleton<IDownloadService, DownloadService>();
+        services.AddSingleton<IUpdateChecker, UpdateChecker>();
+        services.AddSingleton<IUpdateStateService, UpdateStateService>();
+        services.AddSingleton<IGitHubHelper, GitHubHelper>();
+        services.AddSingleton<IGitHubArchiveHelper, GitHubArchiveHelper>();
+        services.AddSingleton<IGitHubCLIHelper, GitHubCLIHelper>();
+        services.AddSingleton<IPythonHelper, PythonHelper>();
+        services.AddSingleton<IKoishiInstallService, KoishiInstallService>();
+        services.AddSingleton<IAstrBotInstallService, AstrBotInstallService>();
+        services.AddSingleton<IZhenxunInstallService, ZhenxunInstallService>();
+        services.AddSingleton<IDDBotInstallService, DDBotInstallService>();
+        services.AddSingleton<IYunzaiInstallService, YunzaiInstallService>();
+        services.AddSingleton<IZeroBotPluginInstallService, ZeroBotPluginInstallService>();
+        services.AddSingleton<IOpenClawInstallService, OpenClawInstallService>();
+
+        // ViewModels（瞬态）
+        services.AddTransient<MainWindowViewModel>();
+        services.AddTransient<HomeViewModel>();
+        services.AddTransient<LogViewModel>();
+        services.AddTransient<ConfigViewModel>();
+        services.AddTransient<LLBotConfigViewModel>();
+        services.AddTransient<IntegrationWizardViewModel>();
+        services.AddTransient<AboutViewModel>();
+
+        // 日志
+        services.AddLogging(builder =>
+        {
+            builder.AddSerilog(logger, dispose: true);
+        });
+
+        Services = services.BuildServiceProvider();
+    }
+
+    public override void OnFrameworkInitializationCompleted()
+    {
+        try
+        {
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                var mainVM = Services.GetRequiredService<MainWindowViewModel>();
+                desktop.MainWindow = new MainWindow
+                {
+                    DataContext = mainVM
+                };
+
+                desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                desktop.ShutdownRequested += OnShutdownRequested;
+
+                // 获取托盘菜单项引用
+                var trayIcons = TrayIcon.GetIcons(this);
+                if (trayIcons?.Count > 0)
+                {
+                    var menu = trayIcons[0].Menu;
+                    if (menu?.Items.Count > 0)
+                    {
+                        _trayShowMenuItem = menu.Items[0] as NativeMenuItem;
+                    }
+                }
+
+                // macOS: 主动显示并激活窗口
+                if (PlatformHelper.IsMacOS)
+                {
+                    // 临时设置 Topmost 确保窗口出现在最前面
+                    desktop.MainWindow.Topmost = true;
+                    desktop.MainWindow.Show();
+                    desktop.MainWindow.Activate();
+                    // 恢复 Topmost 状态
+                    desktop.MainWindow.Topmost = false;
+                }
+            }
+
+            Log.Information("框架初始化完成，主窗口已创建");
+            base.OnFrameworkInitializationCompleted();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "框架初始化失败");
+            System.IO.File.WriteAllText("startup_error.log", $"{DateTime.Now}: {ex}");
+            throw;
+        }
+    }
+
+    public void UpdateTrayMenuText(string? nickname, string? uin)
+    {
+        if (_trayShowMenuItem == null) return;
+
+        var trayIcons = TrayIcon.GetIcons(this);
+        if (!string.IsNullOrEmpty(nickname) && !string.IsNullOrEmpty(uin))
+        {
+            _trayShowMenuItem.Header = $"RONoBbot - {nickname}({uin})";
+            if (trayIcons?.Count > 0)
+            {
+                trayIcons[0].ToolTipText = $"{nickname}({uin})";
+            }
+            Log.Information("托盘菜单已更新: {Nickname}({Uin})", nickname, uin);
+        }
+        else
+        {
+            _trayShowMenuItem.Header = "显示主窗口";
+            if (trayIcons?.Count > 0)
+            {
+                trayIcons[0].ToolTipText = "RONoBbot";
+            }
+        }
+    }
+
+    private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
+    {
+        ExitApplicationAsync();
+    }
+
+    private void TrayIcon_Clicked(object? sender, EventArgs e)
+    {
+        ShowMainWindow();
+    }
+
+    private void ShowWindow_Click(object? sender, EventArgs e)
+    {
+        ShowMainWindow();
+    }
+
+    private async void Exit_Click(object? sender, EventArgs e)
+    {
+        await ExitApplicationAsync();
+    }
+
+    /// <summary>
+    /// 统一的应用退出方法
+    /// </summary>
+    public Task ExitApplicationAsync()
+    {
+        Log.Information("ExitApplicationAsync 被调用");
+        
+        try
+        {
+            var resourceMonitor = Services.GetService<IResourceMonitor>();
+            var pmhqClient = Services.GetService<IPmhqClient>();
+            var processManager = Services.GetService<IProcessManager>();
+            
+            var qqPid = resourceMonitor?.QQPid;
+            
+            // 如果缓存没有 PID，尝试从 API 获取
+            if (!qqPid.HasValue && pmhqClient?.HasPort == true)
+            {
+                try
+                {
+                    var task = Task.Run(() => pmhqClient.FetchQQPidAsync());
+                    if (task.Wait(1000))
+                    {
+                        qqPid = task.Result;
+                    }
+                }
+                catch { }
+            }
+            
+            Log.Information("QQ PID: {Pid}", qqPid);
+            
+            // 使用统一的强制终止方法
+            processManager?.ForceKillAll(qqPid);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "清理进程失败");
+        }
+        
+        Log.Information("应用退出");
+        Environment.Exit(0);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 启动时清理旧日志文件：超过 maxAgeDays 天的删除，总文件数超过 maxTotalFiles 时删除最旧的
+    /// </summary>
+    private static void CleanupOldLogs(string logDir, int maxAgeDays, int maxTotalFiles)
+    {
+        try
+        {
+            if (!System.IO.Directory.Exists(logDir)) return;
+
+            var files = new System.IO.DirectoryInfo(logDir)
+                .GetFiles("*.log")
+                .OrderBy(f => f.CreationTime)
+                .ToList();
+
+            var cutoff = DateTime.Now.AddDays(-maxAgeDays);
+
+            // 删除超龄文件
+            foreach (var file in files.Where(f => f.CreationTime < cutoff).ToList())
+            {
+                try { file.Delete(); files.Remove(file); } catch { }
+            }
+
+            // 如果仍超出总数限制，删除最旧的
+            while (files.Count > maxTotalFiles)
+            {
+                try { files[0].Delete(); } catch { }
+                files.RemoveAt(0);
+            }
+        }
+        catch { }
+    }
+
+    private void ShowMainWindow()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var mainWindow = desktop.MainWindow;
+            if (mainWindow != null)
+            {
+                mainWindow.Show();
+                mainWindow.WindowState = WindowState.Normal;
+                mainWindow.Activate();
+            }
+        }
+    }
+}

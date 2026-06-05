@@ -1,0 +1,251 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:LuckyLilliaDesktop.ViewModels"
+             xmlns:utils="using:LuckyLilliaDesktop.Utils"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="LuckyLilliaDesktop.Views.Pages.LogPage"
+             x:DataType="vm:LogViewModel">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <LinearGradientBrush x:Key="MainBackground" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#FFFFFF"/>
+                        <GradientStop Offset="0.5" Color="#FAFBFC"/>
+                        <GradientStop Offset="1" Color="#F0F4F8"/>
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="SidebarBackground" Color="#F8FAFD"/>
+                    <SolidColorBrush x:Key="CardBackground" Color="#D8FFFFFF"/>
+                    <SolidColorBrush x:Key="CardBackgroundStrong" Color="#EBFFFFFF"/>
+                    <SolidColorBrush x:Key="CardBackgroundSecondary" Color="#EFF1F5"/>
+                    <SolidColorBrush x:Key="BorderColor" Color="#DEE2EA"/>
+                    <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#1E293B"/>
+                        <GradientStop Offset="1" Color="#334155"/>
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="PrimaryBrush" Color="#1E293B"/>
+                    <SolidColorBrush x:Key="PrimaryBrushSoft" Color="#EFF1F5"/>
+                    <SolidColorBrush x:Key="DangerColor" Color="#EF4444"/>
+                    <SolidColorBrush x:Key="SuccessColor" Color="#10B981"/>
+                    <SolidColorBrush x:Key="WarningColor" Color="#F59E0B"/>
+                    <SolidColorBrush x:Key="TextPrimary" Color="#1A1A2E"/>
+                    <SolidColorBrush x:Key="TextSecondary" Color="#8E8EA8"/>
+                    <SolidColorBrush x:Key="TitleBarBackground" Color="#EBFFFFFF"/>
+                    <SolidColorBrush x:Key="WindowButtonHover" Color="#30EFF1F5"/>
+                    <SolidColorBrush x:Key="CloseButtonHover" Color="#FEE2E2"/>
+                    <SolidColorBrush x:Key="WindowButtonStroke" Color="#8E8EA8"/>
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#EBFFFFFF"/>
+                    <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#30EFF1F5"/>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#1A1A2E"/>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#8E8EA8"/>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseLowBrush" Color="#DEE2EA"/>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <LinearGradientBrush x:Key="MainBackground" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#0B0B1A"/>
+                        <GradientStop Offset="0.5" Color="#111128"/>
+                        <GradientStop Offset="1" Color="#0D1025"/>
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="SidebarBackground" Color="#14142E"/>
+                    <SolidColorBrush x:Key="CardBackground" Color="#1A1A35"/>
+                    <SolidColorBrush x:Key="CardBackgroundStrong" Color="#AA202040"/>
+                    <SolidColorBrush x:Key="CardBackgroundSecondary" Color="#242440"/>
+                    <SolidColorBrush x:Key="BorderColor" Color="#2E2E50"/>
+                    <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#1E293B"/>
+                        <GradientStop Offset="1" Color="#334155"/>
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="PrimaryBrush" Color="#818CF8"/>
+                    <SolidColorBrush x:Key="PrimaryBrushSoft" Color="#252550"/>
+                    <SolidColorBrush x:Key="DangerColor" Color="#F87171"/>
+                    <SolidColorBrush x:Key="SuccessColor" Color="#34D399"/>
+                    <SolidColorBrush x:Key="WarningColor" Color="#FBBF24"/>
+                    <SolidColorBrush x:Key="TextPrimary" Color="#EEEEFF"/>
+                    <SolidColorBrush x:Key="TextSecondary" Color="#A0A0C0"/>
+                    <SolidColorBrush x:Key="TitleBarBackground" Color="#AA14142E"/>
+                    <SolidColorBrush x:Key="WindowButtonHover" Color="#30353560"/>
+                    <SolidColorBrush x:Key="CloseButtonHover" Color="#4A1F2A"/>
+                    <SolidColorBrush x:Key="WindowButtonStroke" Color="#A0A0C0"/>
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#AA202040"/>
+                    <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#30353560"/>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#EEEEFF"/>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#A0A0C0"/>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseLowBrush" Color="#2E2E50"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundStrong}"/>
+        </Style>
+        <Style Selector="ToggleButton">
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundStrong}"/>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Opacity" Value="0.92"/>
+        </Style>
+        <Style Selector="ToggleButton:pointerover">
+            <Setter Property="Opacity" Value="0.92"/>
+        </Style>
+        <Style Selector="Button.action-button">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrushSoft}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="ToggleButton.action-button">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrushSoft}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="ToggleButton.action-button:checked">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.primary-button">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.danger-button">
+            <Setter Property="Background" Value="{DynamicResource DangerColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundStrong}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundStrong}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrushSoft}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+
+    <DockPanel Background="{DynamicResource MainBackground}">
+        <Border DockPanel.Dock="Top"
+                Background="{DynamicResource CardBackgroundStrong}"
+                BorderBrush="{DynamicResource BorderColor}"
+                BorderThickness="1"
+                CornerRadius="22"
+                Margin="30,30,30,0"
+                Padding="22,18"
+                BoxShadow="0 12 36 0 #14E84D9C">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Border Width="52" Height="52"
+                        CornerRadius="16"
+                        Background="{DynamicResource PrimaryBrushSoft}"
+                        VerticalAlignment="Center"
+                        Margin="0,0,16,0">
+                    <PathIcon Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1v5h5M16 13H8M16 17H8M10 9H8"
+                              Width="30" Height="30"
+                              Foreground="{DynamicResource PrimaryBrush}"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="日志查看器"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimary}"/>
+                    <TextBlock Text="实时查看运行日志、复制选中内容或清空历史记录"
+                               Margin="0,4,0,0"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondary}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="10">
+                    <Button Classes="action-button"
+                            Content="取消选中"
+                            Command="{Binding ClearSelectionCommand}"
+                            IsVisible="{Binding HasSelection}"
+                            Padding="14,8"/>
+                    <Button Classes="primary-button"
+                            Content="复制选中"
+                            Command="{Binding CopySelectedCommand}"
+                            IsVisible="{Binding HasSelection}"
+                            Padding="14,8"/>
+                    <ToggleButton x:Name="AutoScrollToggle"
+                                  Classes="action-button"
+                                  IsChecked="{Binding AutoScroll}"
+                                  ToolTip.Tip="自动滚动到底部"
+                                  Padding="14,8">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
+                                      Width="16" Height="16"/>
+                            <TextBlock Text="自动滚动" FontSize="12"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <Button Classes="danger-button"
+                            Content="清空日志"
+                            Command="{Binding ClearLogsCommand}"
+                            Padding="14,8"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Background="{DynamicResource CardBackground}"
+                Margin="30,18,30,30"
+                CornerRadius="20"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource BorderColor}"
+                Padding="8"
+                    BoxShadow="0 18 48 0 #18E84D9C">
+            <ListBox x:Name="LogListBox"
+                     ItemsSource="{Binding LogEntries}"
+                     SelectionMode="Multiple"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock x:Name="LogText"
+                                   utils:AnsiParser.AnsiText="{Binding FormattedText}"
+                                   FontFamily="Cascadia Code,Consolas,Courier New,Segoe UI Emoji,Microsoft YaHei"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextPrimary}"
+                                   TextWrapping="Wrap"
+                                   Padding="4,2"
+                                   Classes.error="{Binding IsError}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0,1"/>
+                        <Setter Property="CornerRadius" Value="4"/>
+                    </Style>
+                    <Style Selector="TextBlock.error">
+                        <Setter Property="Foreground" Value="{DynamicResource DangerColor}"/>
+                    </Style>
+                </ListBox.Styles>
+            </ListBox>
+        </Border>
+    </DockPanel>
+</UserControl>
