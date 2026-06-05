@@ -35,7 +35,7 @@ public static class Constants
         public const string PmhqDir = "bin/pmhq";
         public static string PmhqExe => PlatformHelper.GetExecutablePath("bin/pmhq", $"pmhq-{PlatformHelper.PlatformIdentifier}");
         public const string LLBotDir = "bin/RONoBot";
-        public const string LLBotScript = "bin/RONoBot/llbot.js";
+        public const string LLBotScript = "bin/RONoBot/ronobot.js";
         public static string NodeExe => PlatformHelper.GetExecutablePath("bin/RONoBot", "node");
         public static string FFmpegExe => PlatformHelper.GetExecutablePath("bin/RONoBot", "ffmpeg");
         public static string FFprobeExe => PlatformHelper.GetExecutablePath("bin/RONoBot", "ffprobe");
